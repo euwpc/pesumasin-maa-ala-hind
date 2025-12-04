@@ -8,7 +8,7 @@
     body {
       margin: 0;
       padding: 0;
-      background: #1a1a1a;
+      background: #0d0d0d;
       color: #eee;
       font-family: Arial, sans-serif;
       display: flex;
@@ -16,104 +16,80 @@
       align-items: center;
       min-height: 100vh;
     }
+
     .glass {
       background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 12px;
-      padding: 20px;
-      margin: 20px;
-      color: #eee;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 25px;
+      margin-top: 40px;
+      width: 330px;
       text-align: center;
-      width: 300px;
     }
+
     .diamond-box {
-      position: relative;
-      width: 200px;
-      height: 200px;
+      width: 180px;
+      height: 180px;
       margin: 0 auto 20px;
-    }
-    .diamond-box img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-    .price-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 36px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 40px;
       font-weight: bold;
-      text-shadow: 0 0 8px rgba(0,0,0,0.8);
+      color: #fff;
+      box-shadow: 0 0 25px rgba(0,255,255,0.15);
     }
+
     .history {
+      margin-top: 15px;
       text-align: left;
-      max-height: 200px;
+      font-size: 15px;
+      max-height: 250px;
       overflow-y: auto;
-      margin-top: 10px;
-      font-size: 14px;
     }
-    .history .up {
-      color: #4caf50;
-    }
-    .history .down {
-      color: #e74c3c;
-    }
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #3498db;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      cursor: pointer;
-    }
-    input[type="number"] {
-      width: 100px;
-      padding: 5px;
-      font-size: 16px;
-    }
+
+    .up { color: #e74c3c; }
+    .down { color: #4caf50; }
   </style>
 </head>
 <body>
   <div class="glass">
     <h1>Maa-ala hind</h1>
-    <div class="diamond-box">
-      <!-- Replace the src with the Minecraft-diamond PNG if you download it -->
-      <img src="minecraft-diamond.png" alt="Diamond">
-      <div class="price-overlay" id="priceDisplay">1000</div>
-    </div>
 
-    <div>
-      <input type="number" id="newPrice" placeholder="uus hind" />
-      <button onclick="updatePrice()">Uuenda</button>
-    </div>
+    <!-- PRICE DISPLAY -->
+    <div class="diamond-box" id="priceDisplay">0</div>
 
+    <!-- STATIC HISTORY (ALWAYS SHOWN) -->
     <div class="history" id="historyLog">
       <strong>Ajalugu:</strong><br>
-      <!-- changes will appear here -->
     </div>
   </div>
 
   <script>
-    let currentPrice = 1000;
+    // --- SETTINGS YOU CHANGE MANUALLY IN THE CODE ---
+    const currentPrice = 5; // <--- EDIT THIS VALUE
 
-    function updatePrice() {
-      const input = document.getElementById('newPrice');
-      const val = parseFloat(input.value);
-      if (!isNaN(val) && val !== currentPrice) {
-        const diff = val - currentPrice;
-        const sign = diff > 0 ? '+' : '';
-        const span = document.createElement('div');
-        span.textContent = sign + diff.toFixed(2);
-        span.className = diff > 0 ? 'up' : 'down';
-        document.getElementById('historyLog').append(span);
-        currentPrice = val;
-        document.getElementById('priceDisplay').textContent = currentPrice;
-        input.value = '';
-      }
-    }
+    const history = [
+      // Example static history entries, edit manually
+      { change: +0, type: 'down' },
+      { change: +3, type: 'up' }
+    ];
+
+    // Display current price
+    document.getElementById('priceDisplay').textContent = currentPrice;
+
+    // Render history
+    const log = document.getElementById('historyLog');
+    history.forEach(h => {
+      const div = document.createElement('div');
+      div.className = h.type;
+      div.textContent = (h.change > 0 ? '+' : '') + h.change;
+      log.appendChild(div);
+    });
   </script>
 </body>
 </html>
