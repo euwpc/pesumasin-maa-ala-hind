@@ -5,88 +5,168 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Maa-ala hind</title>
   <style>
+    /* ===== GLOBAL DARK + PREMIUM GLASS THEME ===== */
     body {
       margin: 0;
-      padding: 0;
-      background: #0d0d0d;
-      color: #eee;
-      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0f1b2b, #05080f 70%);
+      color: #e8f1ff;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      justify-content: center;
+      align-items: flex-start;
       min-height: 100vh;
+      padding-top: 60px;
+    }
+
+    h1 {
+      font-weight: 300;
+      font-size: 32px;
+      letter-spacing: 1px;
+      margin-bottom: 25px;
+      background: linear-gradient(90deg, #7dd3fc, #38bdf8);
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 25px rgba(56,189,248,0.4);
     }
 
     .glass {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(18px) saturate(180%);
       border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 14px;
-      padding: 25px;
-      margin-top: 40px;
-      width: 330px;
+      border-radius: 20px;
+      padding: 35px 40px;
+      width: 420px;
+      box-shadow:
+        0 0 40px rgba(0, 200, 255, 0.12),
+        inset 0 0 25px rgba(255,255,255,0.03);
       text-align: center;
+      animation: fadeIn 1.4s ease;
     }
 
-    .diamond-box {
-      width: 180px;
-      height: 180px;
-      margin: 0 auto 20px;
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== PRICE DISPLAY CIRCLE ===== */
+    .price-circle {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 25px;
       border-radius: 50%;
+      background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(14,165,233,0.1));
+      backdrop-filter: blur(14px);
+      border: 2px solid rgba(255,255,255,0.18);
+      box-shadow:
+        0 0 40px rgba(56,189,248,0.28),
+        inset 0 0 25px rgba(255,255,255,0.08);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 40px;
-      font-weight: bold;
-      color: #fff;
-      box-shadow: 0 0 25px rgba(0,255,255,0.15);
+      font-size: 50px;
+      font-weight: 600;
+      color: #e0f7ff;
+      letter-spacing: 2px;
+      text-shadow: 0 0 15px rgba(56,189,248,0.55);
     }
 
+    /* ===== HISTORY TIMELINE ===== */
     .history {
-      margin-top: 15px;
+      margin-top: 25px;
       text-align: left;
-      font-size: 15px;
-      max-height: 250px;
+      font-size: 18px;
+      position: relative;
+      padding-left: 30px;
+      max-height: 300px;
       overflow-y: auto;
     }
 
-    .up { color: #e74c3c; }
-    .down { color: #4caf50; }
+    .history::before {
+      content: '';
+      position: absolute;
+      left: 12px;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: linear-gradient(to bottom, #38bdf8, transparent);
+      border-radius: 3px;
+      opacity: 0.7;
+      box-shadow: 0 0 12px rgba(56,189,248,0.4);
+    }
+
+    .history-entry {
+      margin: 14px 0;
+      position: relative;
+      padding-left: 10px;
+      font-weight: 500;
+      font-size: 19px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-entry::before {
+      content: '';
+      position: absolute;
+      left: -22px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 12px rgba(56,189,248,0.8);
+      border: 2px solid rgba(255,255,255,0.4);
+    }
+
+    .up {
+      color: #ff7272;
+      text-shadow: 0 0 10px rgba(255,110,110,0.6);
+    }
+
+    .down {
+      color: #5efc9b;
+      text-shadow: 0 0 10px rgba(94,252,155,0.6);
+    }
+
   </style>
 </head>
+
 <body>
   <div class="glass">
     <h1>Maa-ala hind</h1>
 
-    <!-- PRICE DISPLAY -->
-    <div class="diamond-box" id="priceDisplay">0</div>
+    <!-- PRICE -->
+    <div style="margin-bottom:15px;font-size:22px;font-weight:400;opacity:0.9;letter-spacing:1px;">Praegune Maa-ala hind</div>
+    <div class="price-circle"" id="priceDisplay">0</div>
 
-    <!-- STATIC HISTORY (ALWAYS SHOWN) -->
+    <!-- HISTORY -->
     <div class="history" id="historyLog">
-      <strong>Ajalugu:</strong><br>
+      <strong style="font-size: 20px; letter-spacing: 1px;">Ajalugu:</strong><br>
     </div>
   </div>
 
   <script>
-    // --- SETTINGS YOU CHANGE MANUALLY IN THE CODE ---
-    const currentPrice = 5; // <--- EDIT THIS VALUE
+    /* ===============================================================
+       ============ ONLY CHANGE VALUES IN THIS SECTION ===============
+       =============================================================== */
+
+    const currentPrice = 5; // <--- EDIT PRICE HERE
 
     const history = [
-      // Example static history entries, edit manually
       { change: +0, type: 'down' },
-      { change: +3, type: 'up' }
+      { change: +3, type: 'up' },
+    
     ];
 
-    // Display current price
+    /* =============================================================== */
+
+    // Display price
     document.getElementById('priceDisplay').textContent = currentPrice;
 
-    // Render history
+    // Render timeline history
     const log = document.getElementById('historyLog');
     history.forEach(h => {
       const div = document.createElement('div');
-      div.className = h.type;
+      div.className = 'history-entry ' + h.type;
       div.textContent = (h.change > 0 ? '+' : '') + h.change;
       log.appendChild(div);
     });
