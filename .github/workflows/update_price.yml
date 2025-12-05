@@ -1,0 +1,29 @@
+name: Update Diamond Price
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"  # every 2 hours
+  workflow_dispatch:       # manual trigger if needed
+
+permissions:
+  contents: write
+
+jobs:
+  update-price:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update price
+        run: |
+          node update.js
+
+      - name: Commit changes
+        run: |
+          git config --local user.name "github-actions"
+          git config --local user.email "github-actions@github.com"
+          git add price.json
+          git commit -m "Auto-update price" || echo "No changes"
+          git push
