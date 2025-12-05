@@ -145,33 +145,52 @@
   </div>
 
   <script>
-    /* ===============================================================
-       ============ ONLY CHANGE VALUES IN THIS SECTION ===============
-       =============================================================== */
+    /* ================= USER-EDITABLE START ================= */
+    let currentPrice = 3; // Starting price
 
-    const currentPrice = 3; // <--- EDIT PRICE HERE
+    /* ================= USER-EDITABLE END =================== */
 
-    const history = [
-      { change: -0, type: 'down' },
-      { change: +3, type: 'up' },
-      { change: -2, type: 'down' }
+    const history = [];
 
-    
-    ];
-
-    /* =============================================================== */
-
-    // Display price
-    document.getElementById('priceDisplay').textContent = currentPrice;
-
-    // Render timeline history
     const log = document.getElementById('historyLog');
-    history.forEach(h => {
-      const div = document.createElement('div');
-      div.className = 'history-entry ' + h.type;
-      div.textContent = (h.change > 0 ? '+' : '') + h.change;
-      log.appendChild(div);
-    });
+    const priceDisplay = document.getElementById('priceDisplay');
+
+    priceDisplay.textContent = currentPrice;
+
+    function addHistory(change) {
+      const entry = document.createElement('div');
+      const type = change > 0 ? 'up' : 'down';
+      entry.className = 'history-entry ' + type;
+      entry.textContent = (change > 0 ? '+' : '') + change;
+      log.appendChild(entry);
+    }
+
+    function randomChange() {
+      const roll = Math.random(); // 70% common, 20% uncommon, 9% rare, 1% extreme();
+      let amount;
+
+      if (roll < 0.70) amount = Math.floor(Math.random() * 5) + 1;          // 1–5 COMMON (70%)
+      else if (roll < 0.90) amount = Math.floor(Math.random() * 6) + 5;     // 5–10 UNCOMMON (20%)
+      else if (roll < 0.99) amount = Math.floor(Math.random() * 6) + 10;    // 10–15 RARE (9%)
+      else amount = Math.floor(Math.random() * 20) + 20;                     // 20+ EXTREMELY RARE (1%)                     // 20+ EXTREMELY RARE
+
+      // Random direction
+      if (Math.random() < 0.5) amount *= -1;
+
+      // Prevent price going below 1
+      if (currentPrice + amount < 1) amount = 1 - currentPrice;
+
+      currentPrice += amount;
+
+      priceDisplay.textContent = currentPrice;
+      addHistory(amount);
+    }
+
+    // AUTO UPDATE EVERY 2 HOURS (7200000 ms)
+    setInterval(randomChange, 7200000);
+
+    // RUN ON PAGE LOAD
+    randomChange();
   </script>
 </body>
 </html>
