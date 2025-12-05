@@ -1,1 +1,24 @@
+<script>
+async function loadPrice() {
+    const response = await fetch("price.json");
+    const data = await response.json();
+
+    const priceElem = document.getElementById("currentPrice");
+    const historyElem = document.getElementById("history");
+
+    priceElem.textContent = data.price + " 💎";
+
+    historyElem.innerHTML = data.history
+      .map(h => `
+        <div class="entry ${h.change > 0 ? "up" : "down"}">
+            <span>${h.timestamp.split("T")[0]}</span>
+            <span>${h.change > 0 ? "+" : ""}${h.change}</span>
+            <span class="rarity">${h.rarity}</span>
+        </div>
+      `)
+      .join("");
+}
+
+loadPrice();
+</script>
 
