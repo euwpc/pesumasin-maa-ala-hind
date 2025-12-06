@@ -54,14 +54,6 @@
             to   { opacity: 0.2; }
         }
 
-        #justUpdated {
-            display: none;
-            margin-top: 5px;
-            font-size: 16px;
-            color: #00ffcc;
-            text-shadow: 0 0 10px #00ffcc;
-        }
-
         #warning {
             margin-top: 12px;
             padding: 10px;
@@ -101,12 +93,8 @@
         <h1>Praegune Maa-ala hind</h1>
 
         <div id="price">...</div>
-
         <div id="updateStatus"></div>
-        <div id="justUpdated">✔ Hinnang värskendatud!</div>
-
         <div id="warning"></div>
-
         <div class="history" id="history"></div>
     </div>
 
@@ -154,18 +142,12 @@ async function loadPrice() {
             warningElem.style.display = "none";
         }
 
-        // Show update confirmation for 10 seconds
-        const justUpdated = document.getElementById("justUpdated");
-        justUpdated.style.display = "block";
-        setTimeout(() => {
-            justUpdated.style.display = "none";
-        }, 10000);
-
     } catch (err) {
         console.error("Failed to load price.json", err);
     }
 }
 
+// Countdown timer
 function startCountdown() {
     const status = document.getElementById("updateStatus");
 
@@ -206,6 +188,43 @@ function startCountdown() {
     updateTimer();
     setInterval(updateTimer, 1000);
 }
+
+// Force update via ?forceupdate=1
+(async function handleForceUpdate() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has("forceupdate")) return;
+
+    const statusBox = document.getElementById("updateStatus");
+    statusBox.style.display = "block";
+    statusBox.style.color = "#00c700";
+    statusBox.innerText = "Käsitsi uuendus käivitatud...";
+
+    // --- FILL THESE ---
+    const GITHUB_USER = "euwpc";
+    const GITHUB_REPO = "euwpc/pesumasin-maa-ala-hind"; 
+    const WORKFLOW_FILE = "update-price.yml";
+    const TOKEN = "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"; 
+    // Must have scopes: repo + workflow
+
+    try {
+        await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`, {
+            method: "POST",
+            headers: {
+                "Accept": "application/vnd.github+json",
+                "Authorization": `Bearer ${TOKEN}`,
+            },
+            body: JSON.stringify({ ref: "main" })
+        });
+
+        statusBox.innerText = "Uuendus käivitatud! Leht värskendatakse 5 sekundi pärast...";
+        setTimeout(() => location.href = window.location.pathname, 5000);
+
+    } catch (err) {
+        statusBox.style.color = "red";
+        statusBox.innerText = "Uuenduse käivitamine ebaõnnestus!";
+        console.error(err);
+    }
+})();
 
 // Initial load
 loadPrice();
