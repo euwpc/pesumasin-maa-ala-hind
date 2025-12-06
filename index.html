@@ -1,57 +1,147 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maa-ala hind</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: #0d0d0d;
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 420px;
+            padding: 25px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.18);
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 26px;
+            font-weight: 600;
+        }
+
+        #price {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0 20px;
+        }
+
+        #warning {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            display: none;
+            background: rgba(255, 180, 0, 0.2);
+            border: 1px solid rgba(255, 200, 0, 0.6);
+            box-shadow: 0 0 12px rgba(255, 180, 0, 0.4);
+        }
+
+        .history {
+            text-align: left;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .entry {
+            margin-bottom: 8px;
+            font-size: 16px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .green { color: #4dff88; }
+        .red { color: #ff4d4d; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Praegune Maa-ala hind</h1>
+
+        <div id="price">...</div>
+
+        <div id="warning"></div>
+
+        <div class="history" id="history"></div>
+    </div>
+
 <script>
 async function loadPrice() {
-  try {
-    const res = await fetch("./price.json?t=" + Date.now(), { cache:"no-store" });
-    const data = await res.json();
+    try {
+        const response = await fetch('price.json?cache=' + Date.now());
+        const data = await response.json();
 
-    document.getElementById("price").textContent = data.price + " 💎";
+        const priceElem = document.getElementById("price");
+        const historyElem = document.getElementById("history");
+        const warningElem = document.getElementById("warning");
 
-    // ---------------------------
-    // Display warning if needed
-    // ---------------------------
-    const warningElem = document.getElementById("warning");
-    const fc = data.forecast;
+        // Show current price
+        priceElem.textContent = data.price + " 💎";
 
-    const threshold = fc.expectedChange >= 10;  // big move
-    const rare = fc.rarity === "Rare" || fc.rarity === "Extremely Rare";
+        // Build history
+        historyElem.innerHTML = "";
+        data.history.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "entry";
 
-    if (threshold && rare) {
-      warningElem.innerHTML = `
-        <div class="warningBox">
-          ⚠️ Suur hinnatõus tõenäoline järgmisel uuendusel (${fc.expectedChange} 💎 · ${fc.rarity})
-        </div>
-      `;
-    } else {
-      warningElem.innerHTML = "";
+            let cls = item.change > 0 ? "red" : "green";
+            let symbol = item.change > 0 ? "+" : "";
+
+            div.innerHTML = `
+                <span class="${cls}">${symbol}${item.change}</span>
+                <span style="opacity:0.8;"> (${item.rarity})</span>
+            `;
+
+            historyElem.appendChild(div);
+        });
+
+        // -------- WARNING SYSTEM ----------
+        // If next predicted change is large, show warning
+        if (data.next_change_prediction >= 10) {
+            warningElem.style.display = "block";
+
+            if (data.next_change_prediction >= 20) {
+                warningElem.textContent = "⚠️ Äärmiselt suur hinnatõus on tõenäoline!";
+            } else if (data.next_change_prediction >= 15) {
+                warningElem.textContent = "⚠️ Väga suur hinnatõus lähenemas!";
+            } else {
+                warningElem.textContent = "⚠️ Suur hinnatõus võib tulla.";
+            }
+
+        } else {
+            warningElem.style.display = "none";
+        }
+
+    } catch (e) {
+        console.error("Failed to load price.json", e);
     }
-
-    // ---------------------------
-    // History rendering
-    // ---------------------------
-    const history = data.history || [];
-    document.getElementById("history").innerHTML = history.map(h => {
-      const cls = h.change > 0 ? "up" : "down";
-      const sign = h.change > 0 ? "+" : "";
-      const date = new Date(h.timestamp).toLocaleString();
-      return `
-        <div class="entry ${cls}">
-          <div>
-            <strong class="${cls}">${sign}${h.change}</strong>
-            <div class="timestamp">${date}</div>
-          </div>
-          <div style="text-align:right;">
-            <div class="badge">${h.rarity}</div>
-            <div class="timestamp">${h.newPrice} 💎</div>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-  } catch (err) {
-    console.error(err);
-  }
 }
 
+// Load instantly on page open
 loadPrice();
-setInterval(loadPrice, 5 * 60 * 1000);
+
+// Auto-refresh every 2 hours
+setInterval(loadPrice, 2 * 60 * 60 * 1000);
+
 </script>
+
+</body>
+</html>
