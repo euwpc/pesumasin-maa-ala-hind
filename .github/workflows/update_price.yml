@@ -1,35 +1,86 @@
-name: Update Diamond Price
+name: Update Price
 
 on:
   schedule:
-    - cron: '0 */2 * * *'   # every 2 hours (UTC)
-  workflow_dispatch:       # manual run for testing
-
-permissions:
-  contents: write
+    - cron: "0 */2 * * *"   # every 2 hours
+  workflow_dispatch:
 
 jobs:
   update-price:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: true
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 20
 
-      - name: Install (none required) and run updater
+      - name: Update price.json
         run: |
-          node update.js
+          echo "Updating price.json..."
 
-      - name: Commit and push updated price.json
+          # If price.json doesn't exist, create a default one
+          if [ ! -f price.json ]; then
+            echo '{"price":50,"history":[],"next_change_prediction":0}' > price.json
+          fi
+
+          node << 'EOF'
+          const fs = require('fs');
+
+          let data = JSON.parse(fs.readFileSync('price.json', 'utf8'));
+
+          function randomWeightedChange() {
+              const roll = Math.random() * 100;
+
+              if (roll < 70) return (Math.random() < 0.5 ? 1 : -1) * (1 + Math.floor(Math.random() * 5));             // 1–5 common
+              if (roll < 90) return (Math.random() < 0.5 ? 1 : -1) * (5 + Math.floor(Math.random() * 5));             // 5–10 uncommon
+              if (roll < 98) return (Math.random() < 0.5 ? 1 : -1) * (10 + Math.floor(Math.random() * 5));            // 10–15 rare
+              return (Math.random() < 0.5 ? 1 : -1) * (20 + Math.floor(Math.random() * 10));                          // 20–30 extremely rare
+          }
+
+          function rarityFromChange(change) {
+              const abs = Math.abs(change);
+              if (abs <= 5) return "Common";
+              if (abs <= 10) return "Uncommon";
+              if (abs <= 15) return "Rare";
+              return "Extremely Rare";
+          }
+
+          // Current update (this cycle)
+          const change = randomWeightedChange();
+          let newPrice = data.price + change;
+          if (newPrice < 1) newPrice = 1;
+
+          // Prediction for next update
+          const nextChange = randomWeightedChange();
+
+          // Update JSON
+          data.price = newPrice;
+          data.next_change_prediction = Math.abs(nextChange);
+
+          data.history.unshift({
+              change: change,
+              rarity: rarityFromChange(change),
+              timestamp: new Date().toISOString()
+          });
+
+          // Limit history length
+          data.history = data.history.slice(0, 200);
+
+          fs.writeFileSync('price.json', JSON.stringify(data, null, 4));
+          EOF
+
+      - name: Commit updated price.json
         run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
           git add price.json
-          git commit -m "chore: auto-update price" || echo "No changes to commit"
+          git commit -m "Update price" || echo "No changes to commit"
           git push
