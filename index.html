@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maa-ala hind</title>
+
     <style>
         body {
             margin: 0;
@@ -38,10 +39,27 @@
             margin: 10px 0 20px;
         }
 
-        #countdown {
-            margin-top: 5px;
-            font-size: 17px;
+        #updateStatus {
+            font-size: 16px;
             opacity: 0.85;
+            margin-bottom: 10px;
+        }
+
+        #updateStatus.blink {
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 0.9; }
+            to   { opacity: 0.2; }
+        }
+
+        #justUpdated {
+            display: none;
+            margin-top: 5px;
+            font-size: 16px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc;
         }
 
         #warning {
@@ -83,7 +101,9 @@
         <h1>Praegune Maa-ala hind</h1>
 
         <div id="price">...</div>
-        <div id="countdown">Järgmine uuendus: ...</div>
+
+        <div id="updateStatus"></div>
+        <div id="justUpdated">✔ Hinnang värskendatud!</div>
 
         <div id="warning"></div>
 
@@ -91,34 +111,25 @@
     </div>
 
 <script>
-let nextUpdateTime = null;
-
 async function loadPrice() {
     try {
-        const response = await fetch('price.json?cache=' + Date.now());
+        const response = await fetch("price.json?cache=" + Date.now());
         const data = await response.json();
 
         const priceElem = document.getElementById("price");
         const historyElem = document.getElementById("history");
         const warningElem = document.getElementById("warning");
 
-        // Show current price
         priceElem.textContent = data.price + " 💎";
 
-        // Calculate next update time
-        if (data.last_update) {
-            const last = new Date(data.last_update);
-            nextUpdateTime = new Date(last.getTime() + 2 * 60 * 60 * 1000);
-        }
-
-        // Build history
+        // Build History
         historyElem.innerHTML = "";
         data.history.forEach(item => {
             const div = document.createElement("div");
             div.className = "entry";
 
-            let cls = item.change > 0 ? "red" : "green";
-            let symbol = item.change > 0 ? "+" : "";
+            const cls = item.change > 0 ? "red" : "green";
+            const symbol = item.change > 0 ? "+" : "";
 
             div.innerHTML = `
                 <span class="${cls}">${symbol}${item.change}</span>
@@ -128,15 +139,13 @@ async function loadPrice() {
             historyElem.appendChild(div);
         });
 
-        // WARNING SYSTEM
-        if (data.forecast && data.forecast.expectedChange >= 10) {
+        // Warnings
+        if (data.next_change_prediction >= 10) {
             warningElem.style.display = "block";
 
-            const amount = data.forecast.expectedChange;
-
-            if (amount >= 20) {
+            if (data.next_change_prediction >= 20) {
                 warningElem.textContent = "⚠️ Äärmiselt suur hinnatõus on tõenäoline!";
-            } else if (amount >= 15) {
+            } else if (data.next_change_prediction >= 15) {
                 warningElem.textContent = "⚠️ Väga suur hinnatõus lähenemas!";
             } else {
                 warningElem.textContent = "⚠️ Suur hinnatõus võib tulla.";
@@ -145,44 +154,64 @@ async function loadPrice() {
             warningElem.style.display = "none";
         }
 
-    } catch (e) {
-        console.error("Failed to load price.json", e);
+        // Show update confirmation for 10 seconds
+        const justUpdated = document.getElementById("justUpdated");
+        justUpdated.style.display = "block";
+        setTimeout(() => {
+            justUpdated.style.display = "none";
+        }, 10000);
+
+    } catch (err) {
+        console.error("Failed to load price.json", err);
     }
 }
 
-function updateCountdown() {
-    if (!nextUpdateTime) return;
+function startCountdown() {
+    const status = document.getElementById("updateStatus");
 
-    const now = new Date();
-    let diff = nextUpdateTime - now;
+    async function updateTimer() {
+        const r = await fetch("price.json?cache=" + Date.now());
+        const d = await r.json();
 
-    const countdownElem = document.getElementById("countdown");
+        if (!d.last_update) {
+            status.textContent = "Järgmine uuendus...";
+            return;
+        }
 
-    if (diff <= 0) {
-        countdownElem.textContent = "Värskendatakse...";
-        loadPrice();
-        return;
+        const last = new Date(d.last_update).getTime();
+        const next = last + (2 * 60 * 60 * 1000);
+        const now = Date.now();
+
+        const diff = next - now;
+
+        if (diff <= 0) {
+            status.textContent = "Uuendan...";
+            return;
+        }
+
+        const h = Math.floor(diff / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+        status.textContent = `Järgmine uuendus: ${h}h ${m}m ${s}s`;
+
+        // Blink when < 10 minutes
+        if (diff < 10 * 60 * 1000) {
+            status.classList.add("blink");
+        } else {
+            status.classList.remove("blink");
+        }
     }
 
-    const h = Math.floor(diff / (1000 * 60 * 60));
-    diff %= 1000 * 60 * 60;
-
-    const m = Math.floor(diff / (1000 * 60));
-    diff %= 1000 * 60;
-
-    const s = Math.floor(diff / 1000);
-
-    countdownElem.textContent =
-        `Järgmine uuendus: ${h}h ${m}m ${s}s`;
+    updateTimer();
+    setInterval(updateTimer, 1000);
 }
 
-// Run countdown every second
-setInterval(updateCountdown, 1000);
-
-// Load instantly on page open
+// Initial load
 loadPrice();
+startCountdown();
 
-// Auto-refresh every 2 hours
+// Auto refresh every 2 hours
 setInterval(loadPrice, 2 * 60 * 60 * 1000);
 </script>
 
