@@ -35,13 +35,29 @@ jobs:
 
           let data = JSON.parse(fs.readFileSync('price.json', 'utf8'));
 
+          // ------------------------------
+          // NEW IMPROVED RANDOM SYSTEM
+          // ------------------------------
           function randomWeightedChange() {
-              const roll = Math.random() * 100;
+              // 65% chance down, 35% chance up
+              const direction = Math.random() < 0.65 ? -1 : 1;
 
-              if (roll < 70) return (Math.random() < 0.5 ? 1 : -1) * (1 + Math.floor(Math.random() * 5));             // 1–5 common
-              if (roll < 90) return (Math.random() < 0.5 ? 1 : -1) * (5 + Math.floor(Math.random() * 5));             // 5–10 uncommon
-              if (roll < 98) return (Math.random() < 0.5 ? 1 : -1) * (10 + Math.floor(Math.random() * 5));            // 10–15 rare
-              return (Math.random() < 0.5 ? 1 : -1) * (20 + Math.floor(Math.random() * 10));                          // 20–30 extremely rare
+              const rarityRoll = Math.random() * 100;
+              let magnitude;
+
+              if (rarityRoll < 70) {
+                  magnitude = 1 + Math.floor(Math.random() * 5);     // 1–5 common (70%)
+              } else if (rarityRoll < 90) {
+                  magnitude = 5 + Math.floor(Math.random() * 5);     // 5–10 uncommon (20%)
+              } else if (rarityRoll < 98) {
+                  magnitude = 10 + Math.floor(Math.random() * 5);    // 10–15 rare (8%)
+              } else if (rarityRoll < 99.9) {
+                  magnitude = 20 + Math.floor(Math.random() * 10);   // 20–30 extremely rare (1.9%)
+              } else {
+                  magnitude = 30 + Math.floor(Math.random() * 20);   // SUPER RARE 30–50 (0.1%)
+              }
+
+              return direction * magnitude;
           }
 
           function rarityFromChange(change) {
@@ -49,18 +65,19 @@ jobs:
               if (abs <= 5) return "Common";
               if (abs <= 10) return "Uncommon";
               if (abs <= 15) return "Rare";
-              return "Extremely Rare";
+              if (abs <= 30) return "Extremely Rare";
+              return "Super Rare";
           }
 
-          // Current update (this cycle)
+          // ------------------------------
+          // PRICE UPDATE LOGIC
+          // ------------------------------
           const change = randomWeightedChange();
           let newPrice = data.price + change;
-          if (newPrice < 1) newPrice = 1;
+          if (newPrice < 1) newPrice = 1; // never below 1
 
-          // Prediction for next update
           const nextChange = randomWeightedChange();
 
-          // Update JSON
           data.price = newPrice;
           data.next_change_prediction = Math.abs(nextChange);
 
@@ -70,7 +87,6 @@ jobs:
               timestamp: new Date().toISOString()
           });
 
-          // Limit history length
           data.history = data.history.slice(0, 200);
 
           fs.writeFileSync('price.json', JSON.stringify(data, null, 4));
