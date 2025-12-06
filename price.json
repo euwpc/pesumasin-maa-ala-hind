@@ -1,24 +1,11 @@
 {
-  "price": 10,
-  "last_update": "2025-12-06T10:22:00.794Z",
+  "price": 3,
+  "last_update": "2025-01-01T00:00:00Z",
+  "forecast": {
+    "expectedChange": 0,
+    "rarity": "Initial"
+  },
   "history": [
-    {
-      "change": 9,
-      "newPrice": 10,
-      "timestamp": "2025-12-06T10:22:00.794Z",
-      "rarity": "Uncommon"
-    },
-    {
-      "change": -2,
-      "newPrice": 1,
-      "timestamp": "2025-12-06T08:27:58.692Z",
-      "rarity": "Common"
-    },
-    {
-      "change": 0,
-      "newPrice": 50,
-      "timestamp": "2025-01-01T00:00:00Z",
-      "rarity": "Initial"
-    }
+    { "change": 0, "newPrice": 50, "timestamp": "2025-01-01T00:00:00Z", "rarity": "Initial" }
   ]
 }
