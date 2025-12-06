@@ -38,6 +38,12 @@
             margin: 10px 0 20px;
         }
 
+        #countdown {
+            margin-top: 5px;
+            font-size: 17px;
+            opacity: 0.85;
+        }
+
         #warning {
             margin-top: 12px;
             padding: 10px;
@@ -77,6 +83,7 @@
         <h1>Praegune Maa-ala hind</h1>
 
         <div id="price">...</div>
+        <div id="countdown">Järgmine uuendus: ...</div>
 
         <div id="warning"></div>
 
@@ -84,6 +91,8 @@
     </div>
 
 <script>
+let nextUpdateTime = null;
+
 async function loadPrice() {
     try {
         const response = await fetch('price.json?cache=' + Date.now());
@@ -95,6 +104,12 @@ async function loadPrice() {
 
         // Show current price
         priceElem.textContent = data.price + " 💎";
+
+        // Calculate next update time
+        if (data.last_update) {
+            const last = new Date(data.last_update);
+            nextUpdateTime = new Date(last.getTime() + 2 * 60 * 60 * 1000);
+        }
 
         // Build history
         historyElem.innerHTML = "";
@@ -113,19 +128,19 @@ async function loadPrice() {
             historyElem.appendChild(div);
         });
 
-        // -------- WARNING SYSTEM ----------
-        // If next predicted change is large, show warning
-        if (data.next_change_prediction >= 10) {
+        // WARNING SYSTEM
+        if (data.forecast && data.forecast.expectedChange >= 10) {
             warningElem.style.display = "block";
 
-            if (data.next_change_prediction >= 20) {
+            const amount = data.forecast.expectedChange;
+
+            if (amount >= 20) {
                 warningElem.textContent = "⚠️ Äärmiselt suur hinnatõus on tõenäoline!";
-            } else if (data.next_change_prediction >= 15) {
+            } else if (amount >= 15) {
                 warningElem.textContent = "⚠️ Väga suur hinnatõus lähenemas!";
             } else {
                 warningElem.textContent = "⚠️ Suur hinnatõus võib tulla.";
             }
-
         } else {
             warningElem.style.display = "none";
         }
@@ -135,12 +150,40 @@ async function loadPrice() {
     }
 }
 
+function updateCountdown() {
+    if (!nextUpdateTime) return;
+
+    const now = new Date();
+    let diff = nextUpdateTime - now;
+
+    const countdownElem = document.getElementById("countdown");
+
+    if (diff <= 0) {
+        countdownElem.textContent = "Värskendatakse...";
+        loadPrice();
+        return;
+    }
+
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    diff %= 1000 * 60 * 60;
+
+    const m = Math.floor(diff / (1000 * 60));
+    diff %= 1000 * 60;
+
+    const s = Math.floor(diff / 1000);
+
+    countdownElem.textContent =
+        `Järgmine uuendus: ${h}h ${m}m ${s}s`;
+}
+
+// Run countdown every second
+setInterval(updateCountdown, 1000);
+
 // Load instantly on page open
 loadPrice();
 
 // Auto-refresh every 2 hours
 setInterval(loadPrice, 2 * 60 * 60 * 1000);
-
 </script>
 
 </body>
