@@ -1,196 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
   <title>Maa-ala hind</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
-    /* ===== GLOBAL DARK + PREMIUM GLASS THEME ===== */
-    body {
-      margin: 0;
-      background: radial-gradient(circle at top, #0f1b2b, #05080f 70%);
-      color: #e8f1ff;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding-top: 60px;
-    }
-
-    h1 {
-      font-weight: 300;
-      font-size: 32px;
-      letter-spacing: 1px;
-      margin-bottom: 25px;
-      background: linear-gradient(90deg, #7dd3fc, #38bdf8);
-      -webkit-background-clip: text;
-      color: transparent;
-      text-shadow: 0 0 25px rgba(56,189,248,0.4);
-    }
-
-    .glass {
-      background: rgba(255,255,255,0.06);
-      backdrop-filter: blur(18px) saturate(180%);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 20px;
-      padding: 35px 40px;
-      width: 420px;
-      box-shadow:
-        0 0 40px rgba(0, 200, 255, 0.12),
-        inset 0 0 25px rgba(255,255,255,0.03);
-      text-align: center;
-      animation: fadeIn 1.4s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ===== PRICE DISPLAY CIRCLE ===== */
-    .price-circle {
-      width: 200px;
-      height: 200px;
-      margin: 0 auto 25px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, rgba(56,189,248,0.25), rgba(14,165,233,0.1));
-      backdrop-filter: blur(14px);
-      border: 2px solid rgba(255,255,255,0.18);
-      box-shadow:
-        0 0 40px rgba(56,189,248,0.28),
-        inset 0 0 25px rgba(255,255,255,0.08);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 50px;
-      font-weight: 600;
-      color: #e0f7ff;
-      letter-spacing: 2px;
-      text-shadow: 0 0 15px rgba(56,189,248,0.55);
-    }
-
-    /* ===== HISTORY TIMELINE ===== */
-    .history {
-      margin-top: 25px;
-      text-align: left;
-      font-size: 18px;
-      position: relative;
-      padding-left: 30px;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-
-    .history::before {
-      content: '';
-      position: absolute;
-      left: 12px;
-      top: 8px;
-      bottom: 8px;
-      width: 3px;
-      background: linear-gradient(to bottom, #38bdf8, transparent);
-      border-radius: 3px;
-      opacity: 0.7;
-      box-shadow: 0 0 12px rgba(56,189,248,0.4);
-    }
-
-    .history-entry {
-      margin: 14px 0;
-      position: relative;
-      padding-left: 10px;
-      font-weight: 500;
-      font-size: 19px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .history-entry::before {
-      content: '';
-      position: absolute;
-      left: -22px;
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #38bdf8;
-      box-shadow: 0 0 12px rgba(56,189,248,0.8);
-      border: 2px solid rgba(255,255,255,0.4);
-    }
-
-    .up {
-      color: #ff7272;
-      text-shadow: 0 0 10px rgba(255,110,110,0.6);
-    }
-
-    .down {
-      color: #5efc9b;
-      text-shadow: 0 0 10px rgba(94,252,155,0.6);
-    }
-
+    /* Minimal styling to show price & history nicely */
+    body { background:#071326; color:#e8f1ff; font-family:system-ui,Segoe UI,Roboto,Arial; display:flex; justify-content:center; padding:40px; }
+    .card { width:420px; background:rgba(255,255,255,0.04); padding:28px; border-radius:16px; backdrop-filter: blur(8px); }
+    h1 { margin:0 0 10px 0; color: #9be7ff; }
+    .price { font-size:48px; font-weight:700; margin: 8px 0 18px; }
+    .up { color:#ff6b6b; } .down { color:#6ef1a3; }
+    .history { max-height:300px; overflow:auto; padding-left:6px; }
+    .entry { display:flex; justify-content:space-between; padding:8px 6px; border-radius:8px; margin:8px 0; background:rgba(255,255,255,0.02); }
+    .rarity { font-size:12px; opacity:0.8; }
+    .timestamp { font-size:12px; opacity:0.7; }
+    .badge { padding:4px 8px; border-radius:999px; font-size:12px; background:rgba(255,255,255,0.03); }
   </style>
 </head>
-
 <body>
-  <div class="glass">
-    <h1>Maa-ala hind</h1>
-
-    <!-- PRICE -->
-    <div style="margin-bottom:15px;font-size:22px;font-weight:400;opacity:0.9;letter-spacing:1px;">Praegune Maa-ala hind</div>
-    <div class="price-circle"" id="priceDisplay">0</div>
-
-    <!-- HISTORY -->
-    <div class="history" id="historyLog">
-      <strong style="font-size: 20px; letter-spacing: 1px;">Ajalugu:</strong><br>
-    </div>
+  <div class="card">
+    <h1>Praegune Maa-ala hind</h1>
+    <div id="price" class="price">—</div>
+    <div class="history" id="history"></div>
   </div>
 
   <script>
-    /* ================= USER-EDITABLE START ================= */
-    let currentPrice = 3; // Starting price
+    async function loadPrice() {
+      try {
+        // force fresh copy to avoid caching
+        const url = './price.json?t=' + Date.now();
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load price.json: ' + res.status);
+        const data = await res.json();
 
-    /* ================= USER-EDITABLE END =================== */
+        document.getElementById('price').textContent = data.price + ' 💎';
 
-    const history = [];
+        const history = data.history || [];
+        const historyHtml = history.map(h => {
+          const cls = (h.change > 0) ? 'up' : 'down';
+          const sign = h.change > 0 ? '+' : '';
+          const date = new Date(h.timestamp).toLocaleString();
+          return `
+            <div class="entry ${cls}">
+              <div>
+                <div><strong class="${cls}">${sign}${h.change}</strong></div>
+                <div class="timestamp">${date}</div>
+              </div>
+              <div style="text-align:right;">
+                <div class="badge">${h.rarity}</div>
+                <div class="timestamp">new: ${h.newPrice}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+        document.getElementById('history').innerHTML = historyHtml;
 
-    const log = document.getElementById('historyLog');
-    const priceDisplay = document.getElementById('priceDisplay');
-
-    priceDisplay.textContent = currentPrice;
-
-    function addHistory(change) {
-      const entry = document.createElement('div');
-      const type = change > 0 ? 'up' : 'down';
-      entry.className = 'history-entry ' + type;
-      entry.textContent = (change > 0 ? '+' : '') + change;
-      log.appendChild(entry);
+      } catch (err) {
+        console.error(err);
+        document.getElementById('price').textContent = 'Error';
+        document.getElementById('history').textContent = 'Could not load price.json — check file path and Actions.';
+      }
     }
 
-    function randomChange() {
-      const roll = Math.random(); // 70% common, 20% uncommon, 9% rare, 1% extreme();
-      let amount;
-
-      if (roll < 0.70) amount = Math.floor(Math.random() * 5) + 1;          // 1–5 COMMON (70%)
-      else if (roll < 0.90) amount = Math.floor(Math.random() * 6) + 5;     // 5–10 UNCOMMON (20%)
-      else if (roll < 0.99) amount = Math.floor(Math.random() * 6) + 10;    // 10–15 RARE (9%)
-      else amount = Math.floor(Math.random() * 20) + 20;                     // 20+ EXTREMELY RARE (1%)                     // 20+ EXTREMELY RARE
-
-      // Random direction
-      if (Math.random() < 0.5) amount *= -1;
-
-      // Prevent price going below 1
-      if (currentPrice + amount < 1) amount = 1 - currentPrice;
-
-      currentPrice += amount;
-
-      priceDisplay.textContent = currentPrice;
-      addHistory(amount);
-    }
-
-    // AUTO UPDATE EVERY 2 HOURS (7200000 ms)
-    setInterval(randomChange, 7200000);
-
-    // RUN ON PAGE LOAD
-    randomChange();
+    // Load once on page open and then refresh the view every 5 minutes (does not change the price).
+    loadPrice();
+    setInterval(loadPrice, 5 * 60 * 1000);
   </script>
 </body>
 </html>
