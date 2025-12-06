@@ -1,7 +1,13 @@
 {
-  "price": 1,
-  "last_update": "2025-12-06T08:27:58.692Z",
+  "price": 10,
+  "last_update": "2025-12-06T10:22:00.794Z",
   "history": [
+    {
+      "change": 9,
+      "newPrice": 10,
+      "timestamp": "2025-12-06T10:22:00.794Z",
+      "rarity": "Uncommon"
+    },
     {
       "change": -2,
       "newPrice": 1,
