@@ -10,41 +10,40 @@ let price = data.price;
 // ----------------------
 function randomMagnitude() {
     const roll = Math.random() * 100;
-
-    if (roll < 70) return 1 + Math.floor(Math.random() * 5);
+    if (roll < 65) return 1 + Math.floor(Math.random() * 5);
     if (roll < 90) return 5 + Math.floor(Math.random() * 5);
     if (roll < 98) return 10 + Math.floor(Math.random() * 5);
     return 20 + Math.floor(Math.random() * 10);
 }
 
 // ----------------------
-// Change logic with floor/ceiling
+// Direction logic (up-biased)
 // ----------------------
 function randomChange() {
     const mag = randomMagnitude();
 
-    // HARD FLOOR
-    if (price <= 1) {
-        return +mag;
+    // Hard floor
+    if (price <= 1) return +mag;
+
+    // Hard ceiling
+    if (price >= 150) return -mag;
+
+    // Strong recovery at low price
+    if (price <= 20) {
+        return (Math.random() < 0.85 ? 1 : -1) * mag; // 85% UP
     }
 
-    // HARD CEILING
-    if (price >= 150) {
-        return -mag;
+    // Moderate up-bias in normal zone
+    if (price <= 80) {
+        return (Math.random() < 0.65 ? 1 : -1) * mag; // 65% UP
     }
 
-    // Low price anti-inflation
-    if (price <= 30) {
-        return (Math.random() < 0.75 ? 1 : -1) * mag;
-    }
-
-    // High price anti-bubble
+    // Slight correction at high price
     if (price >= 130) {
-        return (Math.random() < 0.65 ? -1 : 1) * mag;
+        return (Math.random() < 0.60 ? -1 : 1) * mag; // 60% DOWN
     }
 
-    // Normal market
-    return (Math.random() < 0.5 ? 1 : -1) * mag;
+    return (Math.random() < 0.55 ? 1 : -1) * mag; // Default gentle uptrend
 }
 
 // ----------------------
@@ -64,7 +63,7 @@ function rarityFromChange(change) {
 let change = randomChange();
 let newPrice = price + change;
 
-// Enforce HARD LIMITS
+// Clamp limits
 if (newPrice < 1) {
     change = 1 - price;
     newPrice = 1;
@@ -74,14 +73,14 @@ if (newPrice > 150) {
     newPrice = 150;
 }
 
-// Update history
+// Save history
 data.history.unshift({
     change: change,
     rarity: rarityFromChange(change),
     timestamp: new Date().toISOString()
 });
 
-// Update state
+// Save state
 data.price = newPrice;
 data.last_update = new Date().toISOString();
 data.next_change_prediction = Math.abs(randomChange());
@@ -89,7 +88,6 @@ data.next_change_prediction = Math.abs(randomChange());
 // Trim history
 data.history = data.history.slice(0, 300);
 
-// Save
 fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
 console.log("Updated price:", newPrice);
