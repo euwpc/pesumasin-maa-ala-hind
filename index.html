@@ -89,16 +89,22 @@
 </head>
 <body>
 
-    <div class="container">
-        <h1>Praegune Maa-ala hind</h1>
+<div class="container">
+    <h1>Praegune Maa-ala hind</h1>
 
-        <div id="price">...</div>
-        <div id="updateStatus"></div>
-        <div id="warning"></div>
-        <div class="history" id="history"></div>
-    </div>
+    <div id="price">...</div>
+    <div id="updateStatus"></div>
+    <div id="warning"></div>
+
+    <div class="history" id="history"></div>
+</div>
 
 <script>
+let nextUpdateTime = null;
+
+// -------------------------
+// Load price + history
+// -------------------------
 async function loadPrice() {
     try {
         const response = await fetch("price.json?cache=" + Date.now());
@@ -108,9 +114,16 @@ async function loadPrice() {
         const historyElem = document.getElementById("history");
         const warningElem = document.getElementById("warning");
 
+        // Price
         priceElem.textContent = data.price + " 💎";
 
-        // Build History
+        // Countdown time
+        if (data.last_update) {
+            const last = new Date(data.last_update);
+            nextUpdateTime = new Date(last.getTime() + 2 * 60 * 60 * 1000);
+        }
+
+        // History
         historyElem.innerHTML = "";
         data.history.forEach(item => {
             const div = document.createElement("div");
@@ -127,7 +140,7 @@ async function loadPrice() {
             historyElem.appendChild(div);
         });
 
-        // Warnings
+        // Warning logic
         if (data.next_change_prediction >= 10) {
             warningElem.style.display = "block";
 
@@ -138,46 +151,49 @@ async function loadPrice() {
             } else {
                 warningElem.textContent = "⚠️ Suur hinnatõus võib tulla.";
             }
+
         } else {
             warningElem.style.display = "none";
         }
 
-    } catch (err) {
-        console.error("Failed to load price.json", err);
+    } catch (e) {
+        console.error("Failed to load price.json", e);
     }
 }
 
-// Countdown timer
+// -------------------------
+// Fixed Countdown Timer
+// -------------------------
 function startCountdown() {
     const status = document.getElementById("updateStatus");
 
     async function updateTimer() {
-        const r = await fetch("price.json?cache=" + Date.now());
-        const d = await r.json();
+        if (!nextUpdateTime) return;
 
-        if (!d.last_update) {
-            status.textContent = "Järgmine uuendus...";
-            return;
-        }
-
-        const last = new Date(d.last_update).getTime();
-        const next = last + (2 * 60 * 60 * 1000);
-        const now = Date.now();
-
-        const diff = next - now;
+        const now = new Date();
+        let diff = nextUpdateTime - now;
 
         if (diff <= 0) {
             status.textContent = "Uuendan...";
+            status.classList.remove("blink");
+
+            // Reload data after update window
+            setTimeout(async () => {
+                await loadPrice();
+            }, 3000);
+
             return;
         }
 
         const h = Math.floor(diff / (1000 * 60 * 60));
-        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        diff %= 1000 * 60 * 60;
+        const m = Math.floor(diff / (1000 * 60));
+        diff %= 1000 * 60;
+        const s = Math.floor(diff / 1000);
 
         status.textContent = `Järgmine uuendus: ${h}h ${m}m ${s}s`;
 
-        // Blink when < 10 minutes
+        // Blink effect if under 10 minutes
         if (diff < 10 * 60 * 1000) {
             status.classList.add("blink");
         } else {
@@ -189,48 +205,14 @@ function startCountdown() {
     setInterval(updateTimer, 1000);
 }
 
-// Force update via ?forceupdate=1
-(async function handleForceUpdate() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has("forceupdate")) return;
+// -------------------------
+// Start Everything
+// -------------------------
+loadPrice().then(() => {
+    startCountdown();
+});
 
-    const statusBox = document.getElementById("updateStatus");
-    statusBox.style.display = "block";
-    statusBox.style.color = "#00c700";
-    statusBox.innerText = "Käsitsi uuendus käivitatud...";
-
-    // --- FILL THESE ---
-    const GITHUB_USER = "euwpc";
-    const GITHUB_REPO = "https://github.com/euwpc/pesumasin-maa-ala-hind"; 
-    const WORKFLOW_FILE = "update-price.yml";
-    const TOKEN = "github_"; 
-    // Must have scopes: repo + workflow
-
-    try {
-        await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/actions/workflows/${WORKFLOW_FILE}/dispatches`, {
-            method: "POST",
-            headers: {
-                "Accept": "application/vnd.github+json",
-                "Authorization": `Bearer ${TOKEN}`,
-            },
-            body: JSON.stringify({ ref: "main" })
-        });
-
-        statusBox.innerText = "Uuendus käivitatud! Leht värskendatakse 5 sekundi pärast...";
-        setTimeout(() => location.href = window.location.pathname, 5000);
-
-    } catch (err) {
-        statusBox.style.color = "red";
-        statusBox.innerText = "Uuenduse käivitamine ebaõnnestus!";
-        console.error(err);
-    }
-})();
-
-// Initial load
-loadPrice();
-startCountdown();
-
-// Auto refresh every 2 hours
+// Refresh the visible data every 2 hours
 setInterval(loadPrice, 2 * 60 * 60 * 1000);
 </script>
 
