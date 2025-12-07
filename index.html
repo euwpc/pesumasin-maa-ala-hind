@@ -1,219 +1,213 @@
 <!DOCTYPE html>
 <html lang="et">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maa-ala hind</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maa-ala hind</title>
 
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            background: #0d0d0d;
-            font-family: Arial, sans-serif;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #0d0d0d;
+      font-family: Arial, sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        .container {
-            width: 420px;
-            padding: 25px;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.07);
-            backdrop-filter: blur(18px);
-            box-shadow: 0 0 25px rgba(0, 255, 255, 0.18);
-            text-align: center;
-        }
+    .container {
+      width: 420px;
+      padding: 25px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.18);
+      text-align: center;
+    }
 
-        h1 {
-            margin-top: 0;
-            font-size: 26px;
-            font-weight: 600;
-        }
+    h1 {
+      margin-top: 0;
+      font-size: 26px;
+    }
 
-        #price {
-            font-size: 48px;
-            font-weight: bold;
-            margin: 10px 0 20px;
-        }
+    #price {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 10px 0 10px;
+    }
 
-        #updateStatus {
-            font-size: 16px;
-            opacity: 0.85;
-            margin-bottom: 10px;
-        }
+    #countdown {
+      font-size: 16px;
+      opacity: 0.85;
+      margin-bottom: 10px;
+    }
 
-        #updateStatus.blink {
-            animation: blink 1s infinite alternate;
-        }
+    /* Progress bar styles */
+    .progress-container {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+    }
 
-        @keyframes blink {
-            from { opacity: 0.9; }
-            to   { opacity: 0.2; }
-        }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00ffd5, #00aaff);
+      transition: width 1s linear;
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.6);
+    }
 
-        #warning {
-            margin-top: 12px;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            display: none;
-            background: rgba(255, 180, 0, 0.2);
-            border: 1px solid rgba(255, 200, 0, 0.6);
-            box-shadow: 0 0 12px rgba(255, 180, 0, 0.4);
-        }
+    #countdown.blink {
+      animation: blink 1s infinite alternate;
+    }
 
-        .history {
-            text-align: left;
-            margin-top: 20px;
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 12px;
-            max-height: 260px;
-            overflow-y: auto;
-        }
+    @keyframes blink {
+      from { opacity: 0.9; }
+      to { opacity: 0.2; }
+    }
 
-        .entry {
-            margin-bottom: 8px;
-            font-size: 16px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
+    #warning {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      display: none;
+      background: rgba(255, 180, 0, 0.2);
+      border: 1px solid rgba(255, 200, 0, 0.6);
+    }
 
-        .green { color: #4dff88; }
-        .red { color: #ff4d4d; }
-    </style>
+    .history {
+      text-align: left;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      border-radius: 12px;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .entry {
+      margin-bottom: 8px;
+      font-size: 16px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .green { color: #4dff88; }
+    .red { color: #ff4d4d; }
+  </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Praegune Maa-ala hind</h1>
+  <h1>Praegune Maa-ala hind</h1>
+  <div id="price">---</div>
+  <div id="countdown">Laen aega…</div>
 
-    <div id="price">...</div>
-    <div id="updateStatus"></div>
-    <div id="warning"></div>
+  <!-- Progress bar -->
+  <div class="progress-container">
+    <div id="progressBar" class="progress-bar"></div>
+  </div>
 
-    <div class="history" id="history"></div>
+  <div id="warning"></div>
+  <div class="history" id="history"></div>
 </div>
 
 <script>
-let nextUpdateTime = null;
+let lastUpdateTS = null;
+const PERIOD = 2 * 60 * 60 * 1000; // 2 hours
 
-// -------------------------
-// Load price + history
-// -------------------------
+// Load price.json
 async function loadPrice() {
-    try {
-        const response = await fetch("price.json?cache=" + Date.now());
-        const data = await response.json();
+  try {
+    const res = await fetch("price.json?cache=" + Date.now());
+    const data = await res.json();
 
-        const priceElem = document.getElementById("price");
-        const historyElem = document.getElementById("history");
-        const warningElem = document.getElementById("warning");
+    document.getElementById("price").textContent = data.price + " 💎";
 
-        // Price
-        priceElem.textContent = data.price + " 💎";
-
-        // Countdown time
-        if (data.last_update) {
-            const last = new Date(data.last_update);
-            nextUpdateTime = new Date(last.getTime() + 2 * 60 * 60 * 1000);
-        }
-
-        // History
-        historyElem.innerHTML = "";
-        data.history.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "entry";
-
-            const cls = item.change > 0 ? "red" : "green";
-            const symbol = item.change > 0 ? "+" : "";
-
-            div.innerHTML = `
-                <span class="${cls}">${symbol}${item.change}</span>
-                <span style="opacity:0.8;"> (${item.rarity})</span>
-            `;
-
-            historyElem.appendChild(div);
-        });
-
-        // Warning logic
-        if (data.next_change_prediction >= 10) {
-            warningElem.style.display = "block";
-
-            if (data.next_change_prediction >= 20) {
-                warningElem.textContent = "⚠️ Äärmiselt suur hinnatõus on tõenäoline!";
-            } else if (data.next_change_prediction >= 15) {
-                warningElem.textContent = "⚠️ Väga suur hinnatõus lähenemas!";
-            } else {
-                warningElem.textContent = "⚠️ Suur hinnatõus võib tulla.";
-            }
-
-        } else {
-            warningElem.style.display = "none";
-        }
-
-    } catch (e) {
-        console.error("Failed to load price.json", e);
+    if (data.last_update) {
+      lastUpdateTS = new Date(data.last_update).getTime();
     }
+
+    const history = document.getElementById("history");
+    history.innerHTML = "";
+    data.history.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "entry";
+      const cls = item.change > 0 ? "red" : "green";
+      const sign = item.change > 0 ? "+" : "";
+      div.innerHTML = `<span class="${cls}">${sign}${item.change}</span> (${item.rarity})`;
+      history.appendChild(div);
+    });
+
+    const warn = document.getElementById("warning");
+    if (data.next_change_prediction >= 10) {
+      warn.style.display = "block";
+      warn.textContent = "⚠️ Võimalik suur hinnamuutus!";
+    } else {
+      warn.style.display = "none";
+    }
+
+  } catch (err) {
+    console.error("Failed to load price.json", err);
+  }
 }
 
-// -------------------------
-// Fixed Countdown Timer
-// -------------------------
+// Countdown + progress bar
 function startCountdown() {
-    const status = document.getElementById("updateStatus");
+  const el = document.getElementById("countdown");
+  const bar = document.getElementById("progressBar");
 
-    async function updateTimer() {
-        if (!nextUpdateTime) return;
-
-        const now = new Date();
-        let diff = nextUpdateTime - now;
-
-        if (diff <= 0) {
-            status.textContent = "Uuendan...";
-            status.classList.remove("blink");
-
-            // Reload data after update window
-            setTimeout(async () => {
-                await loadPrice();
-            }, 3000);
-
-            return;
-        }
-
-        const h = Math.floor(diff / (1000 * 60 * 60));
-        diff %= 1000 * 60 * 60;
-        const m = Math.floor(diff / (1000 * 60));
-        diff %= 1000 * 60;
-        const s = Math.floor(diff / 1000);
-
-        status.textContent = `Järgmine uuendus: ${h}h ${m}m ${s}s`;
-
-        // Blink effect if under 10 minutes
-        if (diff < 10 * 60 * 1000) {
-            status.classList.add("blink");
-        } else {
-            status.classList.remove("blink");
-        }
+  setInterval(async () => {
+    if (!lastUpdateTS) {
+      el.textContent = "Laen aega…";
+      bar.style.width = "0%";
+      return;
     }
 
-    updateTimer();
-    setInterval(updateTimer, 1000);
+    const next = lastUpdateTS + PERIOD;
+    const now = Date.now();
+    const remaining = next - now;
+
+    if (remaining <= 0) {
+      el.textContent = "Uuendan…";
+      bar.style.width = "100%";
+      await loadPrice();
+      return;
+    }
+
+    const total = PERIOD;
+    const passed = now - lastUpdateTS;
+    const percent = Math.min(100, (passed / total) * 100);
+    bar.style.width = percent + "%";
+
+    const h = Math.floor(remaining / (1000 * 60 * 60));
+    const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((remaining % (1000 * 60)) / 1000);
+
+    el.textContent = `Järgmine uuendus: ${h}h ${m}m ${s}s`;
+
+    if (remaining < 10 * 60 * 1000) {
+      el.classList.add("blink");
+    } else {
+      el.classList.remove("blink");
+    }
+
+  }, 1000);
 }
 
-// -------------------------
-// Start Everything
-// -------------------------
-loadPrice().then(() => {
-    startCountdown();
-});
-
-// Refresh the visible data every 2 hours
-setInterval(loadPrice, 2 * 60 * 60 * 1000);
+// Init
+(async function init() {
+  await loadPrice();
+  startCountdown();
+})();
 </script>
 
 </body>
