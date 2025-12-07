@@ -177,11 +177,17 @@ function startCountdown() {
     const remaining = next - now;
 
     if (remaining <= 0) {
-      el.textContent = "Uuendan…";
-      bar.style.width = "100%";
-      await loadPrice();
-      return;
-    }
+  el.textContent = "Uuendan…";
+  bar.style.width = "100%";
+
+  // ✅ Wait before checking for new update
+  setTimeout(async () => {
+    await loadPrice();
+  }, 15000);
+
+  return;
+}
+
 
     const total = PERIOD;
     const passed = now - lastUpdateTS;
