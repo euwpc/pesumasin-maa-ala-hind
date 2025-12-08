@@ -17,33 +17,38 @@ function randomMagnitude() {
 }
 
 // ----------------------
-// Direction logic (up-biased)
+// Direction logic (high prices are rare)
 // ----------------------
 function randomChange() {
     const mag = randomMagnitude();
 
-    // Hard floor
-    if (price <= 1) return +mag;
+    // HARD FLOOR: price = 1 → strong forced rise
+    if (price <= 1) {
+        return +(mag + 5);
+    }
 
-    // Hard ceiling
-    if (price >= 150) return -mag;
-
-    // Strong recovery at low price
+    // Very low price (1–20): strong recovery
     if (price <= 20) {
-        return (Math.random() < 0.85 ? 1 : -1) * mag; // 85% UP
+        return (Math.random() < 0.90 ? 1 : -1) * mag;  // 90% UP
     }
 
-    // Moderate up-bias in normal zone
-    if (price <= 80) {
-        return (Math.random() < 0.65 ? 1 : -1) * mag; // 65% UP
+    // Affordable range (21–60)
+    if (price <= 60) {
+        return (Math.random() < 0.65 ? 1 : -1) * mag;  // 65% UP
     }
 
-    // Slight correction at high price
-    if (price >= 130) {
-        return (Math.random() < 0.60 ? -1 : 1) * mag; // 60% DOWN
+    // Upper normal (61–100)
+    if (price <= 100) {
+        return (Math.random() < 0.45 ? 1 : -1) * mag;  // 55% DOWN
     }
 
-    return (Math.random() < 0.55 ? 1 : -1) * mag; // Default gentle uptrend
+    // High price (101–130)
+    if (price <= 130) {
+        return (Math.random() < 0.25 ? 1 : -1) * mag;  // 75% DOWN
+    }
+
+    // Extreme zone (131–150)
+    return (Math.random() < 0.10 ? 1 : -1) * mag;      // 90% DOWN
 }
 
 // ----------------------
@@ -88,6 +93,7 @@ data.next_change_prediction = Math.abs(randomChange());
 // Trim history
 data.history = data.history.slice(0, 300);
 
+// Save file
 fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
 console.log("Updated price:", newPrice);
