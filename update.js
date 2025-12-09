@@ -10,45 +10,50 @@ let price = data.price;
 // ----------------------
 function randomMagnitude() {
     const roll = Math.random() * 100;
-    if (roll < 65) return 1 + Math.floor(Math.random() * 5);
+    if (roll < 60) return 1 + Math.floor(Math.random() * 5);
     if (roll < 90) return 5 + Math.floor(Math.random() * 5);
     if (roll < 98) return 10 + Math.floor(Math.random() * 5);
-    return 20 + Math.floor(Math.random() * 10);
+    return 15 + Math.floor(Math.random() * 10);
 }
 
 // ----------------------
-// Direction logic (high prices are rare)
+// Direction logic (HEAVY UP BIAS)
 // ----------------------
 function randomChange() {
     const mag = randomMagnitude();
 
-    // HARD FLOOR: price = 1 → strong forced rise
+    // HARD FLOOR
     if (price <= 1) {
         return +(mag + 5);
     }
 
-    // Very low price (1–20): strong recovery
+    // HARD CEILING
+    if (price >= 150) {
+        return -mag;
+    }
+
+    // Very low price = near-always rise
     if (price <= 20) {
+        return (Math.random() < 0.98 ? 1 : -1) * mag;  // 98% UP
+    }
+
+    // Low–mid price = strong rise
+    if (price <= 60) {
         return (Math.random() < 0.90 ? 1 : -1) * mag;  // 90% UP
     }
 
-    // Affordable range (21–60)
-    if (price <= 60) {
-        return (Math.random() < 0.65 ? 1 : -1) * mag;  // 65% UP
-    }
-
-    // Upper normal (61–100)
+    // Normal zone = mostly rising
     if (price <= 100) {
-        return (Math.random() < 0.45 ? 1 : -1) * mag;  // 55% DOWN
+        return (Math.random() < 0.80 ? 1 : -1) * mag;  // 80% UP
     }
 
-    // High price (101–130)
+    // High price = still rises but rare drops
     if (price <= 130) {
-        return (Math.random() < 0.25 ? 1 : -1) * mag;  // 75% DOWN
+        return (Math.random() < 0.70 ? 1 : -1) * mag;  // 70% UP
     }
 
-    // Extreme zone (131–150)
-    return (Math.random() < 0.10 ? 1 : -1) * mag;      // 90% DOWN
+    // Near ceiling = light corrections
+    return (Math.random() < 0.60 ? 1 : -1) * mag;      // 60% UP
 }
 
 // ----------------------
@@ -63,7 +68,7 @@ function rarityFromChange(change) {
 }
 
 // ----------------------
-// Apply price update
+// Apply update
 // ----------------------
 let change = randomChange();
 let newPrice = price + change;
