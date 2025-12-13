@@ -1,8 +1,13 @@
 {
-    "price": 10,
-    "next_change_prediction": 2,
+    "price": 1,
+    "next_change_prediction": 3,
     "last_update": "2025-12-06T16:26:07.621Z",
     "history": [
+        {
+            "change": -13,
+            "rarity": "Rare",
+            "timestamp": "2025-12-13T01:45:13.355Z"
+        },
         {
             "change": -3,
             "rarity": "Common",
